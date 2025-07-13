@@ -1,0 +1,13 @@
+# Build stage
+FROM quay.io/fedora/fedora-minimal:42 AS builder
+RUN microdnf install -y git rust cargo gcc make
+WORKDIR /app
+RUN git clone https://github.com/toshisasaki/raw-compressor.git .
+RUN cargo build --release
+
+# Final stage
+FROM quay.io/fedora/fedora-minimal:42
+WORKDIR /app
+RUN microdnf install -y xz-libs
+COPY --from=builder /app/target/release/raw-compressor /usr/bin/raw-compressor
+ENTRYPOINT ["/usr/bin/raw-compressor"]
